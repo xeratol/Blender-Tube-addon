@@ -52,15 +52,19 @@ def flip_faces(faces):
 def create_arc(radius, numSegments, z, arc):
     angleRad = math.radians( arc / numSegments)
     verts = [polar_coords(radius, angleRad * i, z) for i in range(numSegments) ]
+    if arc < 360.0:
+        verts.append( polar_coords(radius, math.radians(arc), z) )
     return verts
 
-def bridge_loops(numVerts, startIdxUpper, startIdxLower):
+def bridge_loops(self, startIdxUpper, startIdxLower):
+    numVerts = self.vertices if self.arc < 360.0 else self.vertices - 1
     faces = []
-    for i in range(numVerts - 1):
+    for i in range(numVerts):
         face = (i + startIdxUpper + 1, i + startIdxUpper, i + startIdxLower, i + startIdxLower + 1)
         faces.append(face)
-    face = (startIdxUpper, startIdxUpper + numVerts - 1, startIdxLower + numVerts - 1, startIdxLower)
-    faces.append(face)
+    if self.arc >= 360.0:
+        face = (startIdxUpper, startIdxUpper + numVerts, startIdxLower + numVerts, startIdxLower)
+        faces.append(face)
     return faces
 
 def add_object(self, context):
@@ -82,10 +86,10 @@ def add_object(self, context):
     verts.extend( create_arc( outerRadius, self.vertices, -self.width / 2, self.arc ) )
 
     faces = []
-    faces.extend( bridge_loops( self.vertices, startIdxInnerLower, startIdxInnerUpper ) )
-    faces.extend( bridge_loops( self.vertices, startIdxOuterUpper, startIdxOuterLower ) )
-    faces.extend( bridge_loops( self.vertices, startIdxInnerUpper, startIdxOuterUpper ) )
-    faces.extend( bridge_loops( self.vertices, startIdxOuterLower, startIdxInnerLower ) )
+    faces.extend( bridge_loops( self, startIdxInnerLower, startIdxInnerUpper ) )
+    faces.extend( bridge_loops( self, startIdxOuterUpper, startIdxOuterLower ) )
+    faces.extend( bridge_loops( self, startIdxInnerUpper, startIdxOuterUpper ) )
+    faces.extend( bridge_loops( self, startIdxOuterLower, startIdxInnerLower ) )
     
     mesh = bpy.data.meshes.new(name="Tube")
     mesh.from_pydata(verts, [], faces)
