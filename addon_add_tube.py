@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Tube",
     "author": "Francis Joseph Serina",
-    "version": (0, 0, 1),
+    "version": (0, 0, 2),
     "blender": (2, 80, 0),
     "location": "View3D > Add > Mesh",
     "description": "Adds a new Tube",
@@ -95,7 +95,19 @@ def add_object(self, context):
     mesh.from_pydata(verts, [], faces)
     # useful for development when the mesh may be invalid.
     mesh.validate(verbose=True)
-    object_data_add(context, mesh, operator=self)
+    obj = object_data_add(context, mesh, operator=self)
+
+    vertGrp = obj.vertex_groups.new(name="Inner Upper")
+    vertGrp.add(list(range(startIdxInnerUpper, startIdxOuterUpper)), 1.0, 'ADD')
+
+    vertGrp = obj.vertex_groups.new(name="Outer Upper")
+    vertGrp.add(list(range(startIdxOuterUpper, startIdxInnerLower)), 1.0, 'ADD')
+
+    vertGrp = obj.vertex_groups.new(name="Inner Lower")
+    vertGrp.add(list(range(startIdxInnerLower, startIdxOuterLower)), 1.0, 'ADD')
+
+    vertGrp = obj.vertex_groups.new(name="Outer Lower")
+    vertGrp.add(list(range(startIdxOuterLower, len(verts))), 1.0, 'ADD')
 
 
 class AddTube(Operator, AddObjectHelper):
