@@ -19,7 +19,7 @@
 bl_info = {
     "name": "Tube",
     "author": "Francis Joseph Serina",
-    "version": (0, 0, 2),
+    "version": (0, 0, 3),
     "blender": (2, 80, 0),
     "location": "View3D > Add > Mesh",
     "description": "Adds a new Tube",
@@ -50,19 +50,19 @@ def flip_faces(faces):
     return newFaces
 
 def create_arc(radius, numSegments, z, arc):
-    angleRad = math.radians( arc / numSegments)
+    angleRad = arc / numSegments
     verts = [polar_coords(radius, angleRad * i, z) for i in range(numSegments) ]
-    if arc < 360.0:
-        verts.append( polar_coords(radius, math.radians(arc), z) )
+    if arc < 2 * math.pi:
+        verts.append( polar_coords(radius, arc, z) )
     return verts
 
 def bridge_loops(self, startIdxUpper, startIdxLower):
-    numVerts = self.vertices if self.arc < 360.0 else self.vertices - 1
+    numVerts = self.vertices if self.arc < 2 * math.pi else self.vertices - 1
     faces = []
     for i in range(numVerts):
         face = (i + startIdxUpper + 1, i + startIdxUpper, i + startIdxLower, i + startIdxLower + 1)
         faces.append(face)
-    if self.arc >= 360.0:
+    if self.arc >= 2 * math.pi:
         face = (startIdxUpper, startIdxUpper + numVerts, startIdxLower + numVerts, startIdxLower)
         faces.append(face)
     return faces
@@ -143,8 +143,9 @@ class AddTube(Operator, AddObjectHelper):
     arc: FloatProperty(name="Arc",
         description="Portion of the circumference",
         min=0.0,
-        max=360.0,
-        default=360.0
+        max=2 * math.pi,
+        default=2 * math.pi,
+        subtype='ANGLE',
     )
 
     width: FloatProperty(name="Width",
